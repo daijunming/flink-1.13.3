@@ -115,11 +115,16 @@ public class JdbcLookupFunction extends TableFunction<Row> {
                 Arrays.stream(fieldTypes)
                         .mapToInt(JdbcTypeUtil::typeInformationToSqlType)
                         .toArray();
+        String[] preFilterCondition = lookupOptions.getPreFilterCondition();
+        String[] finalKeyNames = new String[keyNames.length + preFilterCondition.length];
+        System.arraycopy(keyNames, 0, finalKeyNames, 0, keyNames.length);
+        System.arraycopy(
+                preFilterCondition, 0, finalKeyNames, keyNames.length, preFilterCondition.length);
         this.query =
                 FieldNamedPreparedStatementImpl.parseNamedStatement(
                         options.getDialect()
                                 .getSelectFromStatement(
-                                        options.getTableName(), fieldNames, keyNames),
+                                        options.getTableName(), fieldNames, finalKeyNames),
                         new HashMap<>());
     }
 
@@ -257,11 +262,11 @@ public class JdbcLookupFunction extends TableFunction<Row> {
 
     /** Builder for a {@link JdbcLookupFunction}. */
     public static class Builder {
-        private JdbcOptions options;
-        private JdbcLookupOptions lookupOptions;
         protected String[] fieldNames;
         protected TypeInformation[] fieldTypes;
         protected String[] keyNames;
+        private JdbcOptions options;
+        private JdbcLookupOptions lookupOptions;
 
         /** required, jdbc options. */
         public Builder setOptions(JdbcOptions options) {

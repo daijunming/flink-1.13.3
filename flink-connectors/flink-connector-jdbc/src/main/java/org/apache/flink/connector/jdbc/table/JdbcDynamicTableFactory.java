@@ -161,6 +161,11 @@ public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, Dynam
                     .intType()
                     .defaultValue(3)
                     .withDescription("The max retry times if writing records to database failed.");
+    private static final ConfigOption<String> DATA_FILTER =
+            ConfigOptions.key("data.filter")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("the basic filter(lookup or scan), auto added after where.");
 
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
@@ -237,7 +242,8 @@ public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         return new JdbcLookupOptions(
                 readableConfig.get(LOOKUP_CACHE_MAX_ROWS),
                 readableConfig.get(LOOKUP_CACHE_TTL).toMillis(),
-                readableConfig.get(LOOKUP_MAX_RETRIES));
+                readableConfig.get(LOOKUP_MAX_RETRIES),
+                readableConfig.get(DATA_FILTER));
     }
 
     private JdbcExecutionOptions getJdbcExecutionOptions(ReadableConfig config) {
@@ -295,6 +301,7 @@ public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         optionalOptions.add(SINK_MAX_RETRIES);
         optionalOptions.add(FactoryUtil.SINK_PARALLELISM);
         optionalOptions.add(MAX_RETRY_TIMEOUT);
+        optionalOptions.add(DATA_FILTER);
         return optionalOptions;
     }
 

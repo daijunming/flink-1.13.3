@@ -104,7 +104,9 @@ public class JdbcDynamicTableSource
         final JdbcDialect dialect = options.getDialect();
         String query =
                 dialect.getSelectFromStatement(
-                        options.getTableName(), physicalSchema.getFieldNames(), new String[0]);
+                        options.getTableName(),
+                        physicalSchema.getFieldNames(),
+                        lookupOptions.getPreFilterCondition());
         if (readOptions.getPartitionColumnName().isPresent()) {
             long lowerBound = readOptions.getPartitionLowerBound().get();
             long upperBound = readOptions.getPartitionUpperBound().get();
@@ -112,9 +114,13 @@ public class JdbcDynamicTableSource
             builder.setParametersProvider(
                     new JdbcNumericBetweenParametersProvider(lowerBound, upperBound)
                             .ofBatchNum(numPartitions));
+            if (lookupOptions.getPreFilterCondition().length > 0) {
+                query += " AND ";
+            } else {
+                query += " WHERE ";
+            }
             query +=
-                    " WHERE "
-                            + dialect.quoteIdentifier(readOptions.getPartitionColumnName().get())
+                    dialect.quoteIdentifier(readOptions.getPartitionColumnName().get())
                             + " BETWEEN ? AND ?";
         }
         if (limit >= 0) {

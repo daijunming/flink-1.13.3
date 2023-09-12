@@ -104,9 +104,14 @@ public class JdbcRowDataLookupFunction extends TableFunction<RowData> {
         this.cacheMaxSize = lookupOptions.getCacheMaxSize();
         this.cacheExpireMs = lookupOptions.getCacheExpireMs();
         this.maxRetryTimes = lookupOptions.getMaxRetryTimes();
+        String[] preFilterCondition = lookupOptions.getPreFilterCondition();
+        String[] finalKeyNames = new String[keyNames.length + preFilterCondition.length];
+        System.arraycopy(keyNames, 0, finalKeyNames, 0, keyNames.length);
+        System.arraycopy(
+                preFilterCondition, 0, finalKeyNames, keyNames.length, preFilterCondition.length);
         this.query =
                 options.getDialect()
-                        .getSelectFromStatement(options.getTableName(), fieldNames, keyNames);
+                        .getSelectFromStatement(options.getTableName(), fieldNames, finalKeyNames);
         String dbURL = options.getDbURL();
         this.jdbcDialect =
                 JdbcDialects.get(dbURL)

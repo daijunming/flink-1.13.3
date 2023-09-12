@@ -29,11 +29,14 @@ public class JdbcLookupOptions implements Serializable {
     private final long cacheMaxSize;
     private final long cacheExpireMs;
     private final int maxRetryTimes;
+    private final String dataFilter;
 
-    public JdbcLookupOptions(long cacheMaxSize, long cacheExpireMs, int maxRetryTimes) {
+    public JdbcLookupOptions(
+            long cacheMaxSize, long cacheExpireMs, int maxRetryTimes, String dataFilter) {
         this.cacheMaxSize = cacheMaxSize;
         this.cacheExpireMs = cacheExpireMs;
         this.maxRetryTimes = maxRetryTimes;
+        this.dataFilter = dataFilter;
     }
 
     public long getCacheMaxSize() {
@@ -46,6 +49,15 @@ public class JdbcLookupOptions implements Serializable {
 
     public int getMaxRetryTimes() {
         return maxRetryTimes;
+    }
+
+    public String[] getPreFilterCondition() {
+        if (dataFilter == null || dataFilter.isEmpty()) {
+            return new String[0];
+        }
+        String[] res = new String[1];
+        res[0] = dataFilter.replace("\"", "'");
+        return res;
     }
 
     public static Builder builder() {
@@ -69,6 +81,7 @@ public class JdbcLookupOptions implements Serializable {
         private long cacheMaxSize = -1L;
         private long cacheExpireMs = -1L;
         private int maxRetryTimes = JdbcExecutionOptions.DEFAULT_MAX_RETRY_TIMES;
+        private String dataFilter = "";
 
         /** optional, lookup cache max size, over this value, the old data will be eliminated. */
         public Builder setCacheMaxSize(long cacheMaxSize) {
@@ -89,7 +102,7 @@ public class JdbcLookupOptions implements Serializable {
         }
 
         public JdbcLookupOptions build() {
-            return new JdbcLookupOptions(cacheMaxSize, cacheExpireMs, maxRetryTimes);
+            return new JdbcLookupOptions(cacheMaxSize, cacheExpireMs, maxRetryTimes, dataFilter);
         }
     }
 }
